@@ -2,12 +2,7 @@ package stirling.software.SPDF.controller.web;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,13 +22,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import stirling.software.SPDF.config.security.session.SessionPersistentRegistry;
-import stirling.software.SPDF.model.ApplicationProperties;
+import stirling.software.SPDF.model.*;
 import stirling.software.SPDF.model.ApplicationProperties.Security.OAUTH2;
 import stirling.software.SPDF.model.ApplicationProperties.Security.OAUTH2.Client;
-import stirling.software.SPDF.model.Authority;
-import stirling.software.SPDF.model.Role;
-import stirling.software.SPDF.model.SessionEntity;
-import stirling.software.SPDF.model.User;
 import stirling.software.SPDF.model.provider.GithubProvider;
 import stirling.software.SPDF.model.provider.GoogleProvider;
 import stirling.software.SPDF.model.provider.KeycloakProvider;
@@ -60,7 +51,7 @@ public class AccountWebController {
 
         Map<String, String> providerList = new HashMap<>();
 
-        OAUTH2 oauth = applicationProperties.getSecurity().getOAUTH2();
+        OAUTH2 oauth = applicationProperties.getSecurity().getOauth2();
         if (oauth != null) {
             if (oauth.isSettingsValid()) {
                 providerList.put("oidc", oauth.getProvider());
@@ -91,7 +82,7 @@ public class AccountWebController {
 
         model.addAttribute("loginMethod", applicationProperties.getSecurity().getLoginMethod());
         model.addAttribute(
-                "oAuth2Enabled", applicationProperties.getSecurity().getOAUTH2().getEnabled());
+                "oAuth2Enabled", applicationProperties.getSecurity().getOauth2().getEnabled());
 
         model.addAttribute("currentPage", "login");
 
@@ -354,14 +345,14 @@ public class AccountWebController {
                 // Retrieve username and other attributes
                 username =
                         userDetails.getAttribute(
-                                applicationProperties.getSecurity().getOAUTH2().getUseAsUsername());
+                                applicationProperties.getSecurity().getOauth2().getUseAsUsername());
                 // Add oAuth2 Login attributes to the model
                 model.addAttribute("oAuth2Login", true);
             }
             if (username != null) {
                 // Fetch user details from the database
                 Optional<User> user =
-                        userRepository.findByUsernameIgnoreCase(
+                        userRepository.findByUsernameIgnoreCaseWithSettings(
                                 username); // Assuming findByUsername method exists
                 if (!user.isPresent()) {
                     return "redirect:/error";

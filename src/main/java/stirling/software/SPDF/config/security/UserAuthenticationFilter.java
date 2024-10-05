@@ -58,7 +58,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
                 try {
                     // Use API key to authenticate. This requires you to have an authentication
                     // provider for API keys.
-                    Optional<User> user = userService.loadUserByApiKey(apiKey);
+                    Optional<User> user = userService.getUserByApiKey(apiKey);
                     if (!user.isPresent()) {
                         response.setStatus(HttpStatus.UNAUTHORIZED.value());
                         response.getWriter().write("Invalid API Key.");
@@ -159,7 +159,10 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
         };
 
         for (String pattern : permitAllPatterns) {
-            if (uri.startsWith(pattern) || uri.endsWith(".svg")) {
+            if (uri.startsWith(pattern)
+                    || uri.endsWith(".svg")
+                    || uri.endsWith(".png")
+                    || uri.endsWith(".ico")) {
                 return true;
             }
         }

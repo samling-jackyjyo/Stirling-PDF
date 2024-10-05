@@ -10,7 +10,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -150,12 +149,11 @@ public class SecurityConfiguration {
                                                     })
                                             .permitAll()
                                             .anyRequest()
-                                            .authenticated())
-                    .authenticationProvider(authenticationProvider());
+                                            .authenticated());
 
             // Handle OAUTH2 Logins
-            if (applicationProperties.getSecurity().getOAUTH2() != null
-                    && applicationProperties.getSecurity().getOAUTH2().getEnabled()
+            if (applicationProperties.getSecurity().getOauth2() != null
+                    && applicationProperties.getSecurity().getOauth2().getEnabled()
                     && !applicationProperties
                             .getSecurity()
                             .getLoginMethod()
@@ -224,7 +222,7 @@ public class SecurityConfiguration {
     }
 
     private Optional<ClientRegistration> googleClientRegistration() {
-        OAUTH2 oauth = applicationProperties.getSecurity().getOAUTH2();
+        OAUTH2 oauth = applicationProperties.getSecurity().getOauth2();
         if (oauth == null || !oauth.getEnabled()) {
             return Optional.empty();
         }
@@ -253,7 +251,7 @@ public class SecurityConfiguration {
     }
 
     private Optional<ClientRegistration> keycloakClientRegistration() {
-        OAUTH2 oauth = applicationProperties.getSecurity().getOAUTH2();
+        OAUTH2 oauth = applicationProperties.getSecurity().getOauth2();
         if (oauth == null || !oauth.getEnabled()) {
             return Optional.empty();
         }
@@ -277,7 +275,7 @@ public class SecurityConfiguration {
     }
 
     private Optional<ClientRegistration> githubClientRegistration() {
-        OAUTH2 oauth = applicationProperties.getSecurity().getOAUTH2();
+        OAUTH2 oauth = applicationProperties.getSecurity().getOauth2();
         if (oauth == null || !oauth.getEnabled()) {
             return Optional.empty();
         }
@@ -306,7 +304,7 @@ public class SecurityConfiguration {
     }
 
     private Optional<ClientRegistration> oidcClientRegistration() {
-        OAUTH2 oauth = applicationProperties.getSecurity().getOAUTH2();
+        OAUTH2 oauth = applicationProperties.getSecurity().getOauth2();
         if (oauth == null
                 || oauth.getIssuer() == null
                 || oauth.getIssuer().isEmpty()
@@ -354,7 +352,7 @@ public class SecurityConfiguration {
                             String useAsUsername =
                                     applicationProperties
                                             .getSecurity()
-                                            .getOAUTH2()
+                                            .getOauth2()
                                             .getUseAsUsername();
                             Optional<User> userOpt =
                                     userService.findByUsernameIgnoreCase(
@@ -377,14 +375,6 @@ public class SecurityConfiguration {
     public IPRateLimitingFilter rateLimitingFilter() {
         int maxRequestsPerIp = 1000000; // Example limit TODO add config level
         return new IPRateLimitingFilter(maxRequestsPerIp, maxRequestsPerIp);
-    }
-
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
     }
 
     @Bean
